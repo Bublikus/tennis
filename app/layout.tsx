@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import React from 'react'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
   title: 'Tennis',
   description:
     'Table tennis using real-time mobile phones orientation as rackets.',
+  manifest: '/site.webmanifest',
 }
 
 export default function RootLayout({
@@ -20,8 +22,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
         {children}
+
+        <Analytics debug={false} />
       </body>
-      <Analytics debug={false} />
     </html>
   )
 }
