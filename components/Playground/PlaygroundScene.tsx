@@ -3,18 +3,13 @@
 import React, {
   forwardRef,
   Suspense,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react'
-import {
-  Canvas,
-  extend,
-  Object3DNode,
-  useFrame,
-  useThree,
-} from '@react-three/fiber'
+import { Canvas, extend, Object3DNode, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
   BoxGeometry,
@@ -25,6 +20,7 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three'
+import { PlaygroundSceneRef } from '@/components/Playground/Playground'
 
 class VelocityMesh extends Mesh {
   velocity: Vector3 = new Vector3(0, 0, 0.1)
@@ -94,7 +90,7 @@ interface BallProps {
 // Component for Ball
 const Ball: React.FC<BallProps> = (props) => {
   const mesh = useRef<VelocityMesh | null>(null)
-  const [velocity, setVelocity] = useState(new Vector3(0, 0, 0.1))
+  const [velocity] = useState(new Vector3(0, 0, 0.1))
 
   useFrame(() => {
     if (mesh.current) {
@@ -114,14 +110,21 @@ const Ball: React.FC<BallProps> = (props) => {
 }
 
 // Main scene
-const Scene: React.FC = () => {
+type SceneRefs = { plane: Mesh | null; wall: Mesh | null }
+
+interface SceneProps {
+  getRefs?(refs: SceneRefs): void
+}
+
+const Scene: React.FC<SceneProps> = ({ getRefs }) => {
   const [balls, setBalls] = useState<number[]>([])
-  const { scene } = useThree()
   const plane = useRef<Mesh>(null)
   const wall = useRef<Mesh>(null)
 
   // Fires a ball every 2 seconds
   useEffect(() => {
+    getRefs?.({ plane: plane.current, wall: wall.current })
+
     const intervalId = setInterval(() => {
       const id = Math.random()
       setBalls((balls) => [...balls, id])
@@ -131,7 +134,7 @@ const Scene: React.FC = () => {
     }, 2000)
 
     return () => clearInterval(intervalId)
-  }, [])
+  }, [getRefs])
 
   // Handles collision with plane and wall
   const handleCollision = (mesh: VelocityMesh | null) => {
@@ -167,16 +170,47 @@ const Scene: React.FC = () => {
 }
 
 // Canvas component
-const Playground: React.FC = () => (
-  <Canvas
-    style={{ position: 'fixed', inset: '0', pointerEvents: 'none' }}
-    camera={{ position: [-5, 5, 5], fov: 75 }}
-  >
-    <color attach="background" args={[0, 0, 0]} />
-    <Suspense fallback={null}>
-      <Scene />
-    </Suspense>
-  </Canvas>
-)
+const PlaygroundScene = forwardRef<PlaygroundSceneRef>((props, ref) => {
+  const planeRef = useRef<Mesh | null>(null)
 
-export default Playground
+  const handlePlaneOrientation = useCallback(
+    (event: DeviceOrientationEvent) => {
+      const alpha = event.alpha ?? 0
+      const beta = event.beta ?? 0
+      const gamma = event.gamma ?? 0
+
+      // rotate the plane based on device orientation
+      planeRef.current?.rotation.set(
+        (beta * Math.PI) / 180,
+        (alpha * Math.PI) / 180,
+        (-gamma * Math.PI) / 180,
+      )
+    },
+    [],
+  )
+
+  const getRefs = useCallback((refs: SceneRefs) => {
+    planeRef.current = refs.plane
+  }, [])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      handlePlaneOrientation,
+    }),
+    [handlePlaneOrientation],
+  )
+
+  return (
+    <Canvas
+      style={{ position: 'fixed', inset: '0', pointerEvents: 'none' }}
+      camera={{ position: [-5, 5, 5], fov: 75 }}
+    >
+      <color attach="background" args={[0, 0, 0]} />
+      <Suspense fallback={null}>
+        <Scene getRefs={getRefs} />
+      </Suspense>
+    </Canvas>
+  )
+})
+export default PlaygroundScene
