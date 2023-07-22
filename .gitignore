@@ -3,6 +3,9 @@
 # editor
 /.idea
 
+# certification
+/certification
+
 # dependencies
 /node_modules
 /.pnp
