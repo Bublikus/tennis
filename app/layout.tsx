@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Tennis',
   description:
     'Table tennis using real-time mobile phones orientation as rackets.',
-  manifest: '/site.webmanifest',
+  manifest: 'manifest.json',
 }
 
 export default function RootLayout({
