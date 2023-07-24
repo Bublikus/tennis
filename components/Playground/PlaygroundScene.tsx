@@ -144,7 +144,6 @@ const Scene: React.FC<SceneProps> = ({ getRefs }) => {
       const ballSphere = new THREE.Sphere(mesh.position, 0.2)
 
       if (planeBox.intersectsSphere(ballSphere)) {
-        console.log(plane.current.quaternion)
         let normal = new Vector3(0, 0, 1)
         normal.applyQuaternion(plane.current.quaternion)
         mesh.velocity.reflect(normal)

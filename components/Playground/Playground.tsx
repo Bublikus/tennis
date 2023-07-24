@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useChannel } from '@/hooks/useChannel'
-import PlaygroundScene from './PlaygroundScene'
 import { CHANNEL_NAME } from '@/constants/channel'
+import PlaygroundScene from './PlaygroundScene'
 
 export type PlaygroundSceneRef = {
   handlePlaneOrientation(event: DeviceOrientationEvent): void
@@ -17,12 +17,17 @@ export default function Playground() {
 
   const [channel] = useChannel(CHANNEL_NAME, (event) => {
     console.log(event)
+
+    if (!event.data) return
+
     // Display data on screen
     sceneRef.current?.handlePlaneOrientation(event.data)
   })
 
   const handleOrientation = useCallback(
     (event: DeviceOrientationEvent) => {
+      if (!event) return
+
       if (isMobile) {
         // Send data to server
         let data = {
@@ -30,7 +35,7 @@ export default function Playground() {
           beta: event.beta ?? 0,
           gamma: event.gamma ?? 0,
         }
-        channel.publish(data)
+        channel.publish(CHANNEL_NAME, data)
       }
 
       // Display data on screen
@@ -61,7 +66,7 @@ export default function Playground() {
         <PlaygroundScene ref={sceneRef} />
       )}
 
-      {!isMobile && !isPermissionGranted && (
+      {isMobile && !isPermissionGranted && (
         <button type="button" className="text-5xl" onClick={onStartRacket}>
           🏓 Start racket 🏓
         </button>
