@@ -67,7 +67,7 @@ export default function Playground() {
       )}
 
       {isMobile && !isPermissionGranted && (
-        <button type="button" className="text-5xl" onClick={onStartRacket}>
+        <button type="button" className="text-4xl" onClick={onStartRacket}>
           🏓 Start racket 🏓
         </button>
       )}

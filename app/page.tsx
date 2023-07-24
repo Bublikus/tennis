@@ -6,7 +6,7 @@ const Playground = dynamic(() => import('@/components/Playground'), {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="fixed inset-0 overflow-hidden flex flex-col">
       <Playground />
     </div>
   )
