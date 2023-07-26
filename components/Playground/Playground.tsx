@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useChannel } from '@/hooks/useChannel'
+import { throttle } from '@/utils/misc'
+import { OrientationData } from '@/types/orientation'
 import { CHANNEL_NAME } from '@/constants/channel'
 import PlaygroundScene from './PlaygroundScene'
 
@@ -16,13 +18,19 @@ export default function Playground() {
   const [isPermissionGranted, setIsPermissionGranted] = useState(false)
 
   const [channel] = useChannel(CHANNEL_NAME, (event) => {
-    console.log(event)
-
     if (!event.data) return
 
     // Display data on screen
     sceneRef.current?.handlePlaneOrientation(event.data)
   })
+
+  const throttledPublish = useCallback(
+    throttle(
+      (data: OrientationData) => channel.publish(CHANNEL_NAME, data),
+      100,
+    ),
+    [channel],
+  )
 
   const handleOrientation = useCallback(
     (event: DeviceOrientationEvent) => {
@@ -30,18 +38,18 @@ export default function Playground() {
 
       if (isMobile) {
         // Send data to server
-        let data = {
+        let data: OrientationData = {
           alpha: event.alpha ?? 0,
           beta: event.beta ?? 0,
           gamma: event.gamma ?? 0,
         }
-        channel.publish(CHANNEL_NAME, data)
+        throttledPublish(data)
       }
 
       // Display data on screen
       sceneRef.current?.handlePlaneOrientation(event)
     },
-    [channel, isMobile],
+    [throttledPublish, isMobile],
   )
 
   const onStartRacket = useCallback(() => {
