@@ -1,18 +1,13 @@
-'use client'
-
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Spline, { SPEObject } from '@splinetool/react-spline'
 import { useChannel } from '@/hooks/useChannel'
-import { throttle } from '@/utils/misc'
+import { throttle } from '@/utils/intervals'
 import { OrientationData } from '@/types/orientation'
 import { CHANNEL_NAME } from '@/constants/channel'
 import { Application } from '@splinetool/runtime'
+import { degToRad } from '@/utils/math'
 
-export type PlaygroundSceneRef = {
-  handlePlaneOrientation(event: DeviceOrientationEvent): void
-}
-
-export default function Playground() {
+export default function Home() {
   const racket = useRef<SPEObject>()
 
   const [isMobile, setIsMobile] = useState(false)
@@ -29,11 +24,9 @@ export default function Playground() {
     const beta = event.beta ?? 0
     const gamma = event.gamma ?? 0
 
-    const degreesToRadians = (degrees: number) => degrees * (Math.PI / 180)
-
-    racket.current.rotation.x = degreesToRadians(beta)
-    racket.current.rotation.y = degreesToRadians(alpha)
-    racket.current.rotation.z = degreesToRadians(-gamma)
+    racket.current.rotation.x = degToRad(beta)
+    racket.current.rotation.y = degToRad(alpha)
+    racket.current.rotation.z = degToRad(-gamma)
   }, [])
 
   const [channel] = useChannel(CHANNEL_NAME, (event) => {
